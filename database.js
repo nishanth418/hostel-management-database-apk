@@ -39,16 +39,19 @@ function getEngineType() {
 }
 
 // ----------------------------------------------------
-// PostgreSQL Pool (Supabase / Neon / Render Postgres)
+// PostgreSQL Pool (Render Postgres / Supabase / Neon)
 // ----------------------------------------------------
 let pgPool = null;
 function getPgPool() {
   if (!pgPool) {
     const { Pool } = require('pg');
     const connectionString = process.env.DATABASE_URL;
+    const isInternalRender = connectionString.includes('@dpg-') && !connectionString.includes('.render.com:');
+    const useSsl = process.env.DB_SSL === 'true' || (!isInternalRender && process.env.DB_SSL !== 'false');
+
     pgPool = new Pool({
       connectionString,
-      ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
+      ssl: useSsl ? { rejectUnauthorized: false } : false,
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000
@@ -61,7 +64,7 @@ function getPgPool() {
 }
 
 // ----------------------------------------------------
-// MySQL Pool (Aiven / PlanetScale / Cloud MySQL)
+// MySQL Pool (Cloud MySQL)
 // ----------------------------------------------------
 let mysqlPool = null;
 function getMysqlPool() {
@@ -109,7 +112,12 @@ function getMysqlPool() {
 let sqliteDb = null;
 function getSqlite() {
   if (!sqliteDb) {
-    let Database; try { Database = require('better-sqlite3'); } catch (e) { throw new Error('No database connection specified. Please provide DATABASE_URL in environment.'); }
+    let Database;
+    try {
+      Database = require('better-sqlite3');
+    } catch (e) {
+      throw new Error('No database connection specified. Please provide DATABASE_URL in environment.');
+    }
     const dbDir = path.resolve(__dirname, 'database');
     if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
     sqliteDb = new Database(path.join(dbDir, 'hostel.db'));
@@ -154,8 +162,7 @@ function adaptSql(sql, engine) {
     }
     adapted = result;
   } else if (engine === 'mysql') {
-    // MySQL uses GROUP_CONCAT(expr SEPARATOR ', ')
-    adapted = adapted.replace(/GROUP_CONCAT\s*\(\s*([^,\)]+?)\s*,\s*(['"][^'"]*['"])\s*\)/gi, 'GROUP_CONCAT($1 SEPARATOR $2)');
+    adapted = adapted.replace(/GROUP_CONCAT\s*\(\s*([^,\)]+?)\s*\)/gi, 'GROUP_CONCAT($1 SEPARATOR $2)');
   }
   return adapted;
 }
@@ -227,9 +234,7 @@ async function getApplicationTables() {
       ORDER BY table_name ASC;
     `);
     const foundNames = res.rows.map(r => r.name.toLowerCase());
-    // Return matching required tables in their canonical uppercase form
     const canonical = REQUIRED_TABLES.filter(req => foundNames.includes(req.toLowerCase()));
-    // Plus any other tables found
     const others = res.rows.map(r => r.name).filter(n => !REQUIRED_TABLES.some(req => req.toLowerCase() === n.toLowerCase()));
     return [...canonical, ...others];
   } else if (engine === 'mysql') {
@@ -435,7 +440,7 @@ async function getHealthStatus() {
     return {
       status: 'healthy',
       database: 'connected',
-      engine: engine === 'postgres' ? 'PostgreSQL (Cloud / Supabase)' : (engine === 'mysql' ? 'MySQL (Cloud)' : 'SQLite 3'),
+      engine: engine === 'postgres' ? 'PostgreSQL (Cloud / Render)' : (engine === 'mysql' ? 'MySQL (Cloud)' : 'SQLite 3'),
       totalApplicationTables: tables.length,
       tables,
       foreignKeysEnforced: true,
@@ -464,4 +469,3 @@ module.exports = {
   getEngineType,
   adaptSql
 };
-
