@@ -1,0 +1,186 @@
+-- ==========================================================
+-- Hostel Management System - Exact Relational Schema (MySQL)
+-- Exactly 18 Tables with Exact Original Attributes & Foreign Keys
+-- Designed for Aiven Cloud MySQL (InnoDB / utf8mb4)
+-- ==========================================================
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 1. WARDEN
+CREATE TABLE IF NOT EXISTS WARDEN (
+    WardenID VARCHAR(10) PRIMARY KEY,
+    WardenName VARCHAR(100) NOT NULL,
+    Email VARCHAR(100),
+    JoiningDate VARCHAR(20)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. WARDEN_PHONE
+CREATE TABLE IF NOT EXISTS WARDEN_PHONE (
+    WardenID VARCHAR(10) NOT NULL,
+    PhoneNo VARCHAR(20) NOT NULL,
+    PRIMARY KEY (WardenID, PhoneNo),
+    CONSTRAINT fk_warden_phone FOREIGN KEY (WardenID) REFERENCES WARDEN(WardenID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 3. HOSTEL
+CREATE TABLE IF NOT EXISTS HOSTEL (
+    HostelID VARCHAR(10) PRIMARY KEY,
+    HostelName VARCHAR(100) NOT NULL,
+    TotalFloors INT,
+    WardenID VARCHAR(10),
+    CONSTRAINT fk_hostel_warden FOREIGN KEY (WardenID) REFERENCES WARDEN(WardenID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 4. ROOM_TYPE
+CREATE TABLE IF NOT EXISTS ROOM_TYPE (
+    TypeID VARCHAR(10) PRIMARY KEY,
+    TypeName VARCHAR(30),
+    AC_Type VARCHAR(20),
+    Capacity INT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 5. ROOM
+CREATE TABLE IF NOT EXISTS ROOM (
+    RoomNo VARCHAR(10) PRIMARY KEY,
+    FloorNo INT,
+    Type VARCHAR(30),
+    Capacity INT,
+    RoomRent DECIMAL(10,2),
+    HostelID VARCHAR(10),
+    CONSTRAINT fk_room_hostel FOREIGN KEY (HostelID) REFERENCES HOSTEL(HostelID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. MESS
+CREATE TABLE IF NOT EXISTS MESS (
+    MessID VARCHAR(10) PRIMARY KEY,
+    MessName VARCHAR(100) NOT NULL,
+    MessType VARCHAR(30),
+    Location VARCHAR(100)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 7. STUDENT
+CREATE TABLE IF NOT EXISTS STUDENT (
+    StudentID VARCHAR(10) PRIMARY KEY,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    Gender VARCHAR(10),
+    DOB VARCHAR(20),
+    Email VARCHAR(100),
+    BloodGroup VARCHAR(5),
+    AllergyInfo VARCHAR(100),
+    PlanType VARCHAR(50),
+    RoomNo VARCHAR(10),
+    HostelID VARCHAR(10),
+    MessID VARCHAR(10),
+    MentorStudentID VARCHAR(10),
+    CONSTRAINT fk_student_room FOREIGN KEY (RoomNo) REFERENCES ROOM(RoomNo),
+    CONSTRAINT fk_student_hostel FOREIGN KEY (HostelID) REFERENCES HOSTEL(HostelID),
+    CONSTRAINT fk_student_mess FOREIGN KEY (MessID) REFERENCES MESS(MessID),
+    CONSTRAINT fk_student_mentor FOREIGN KEY (MentorStudentID) REFERENCES STUDENT(StudentID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 8. STUDENT_PHONE
+CREATE TABLE IF NOT EXISTS STUDENT_PHONE (
+    StudentID VARCHAR(10) NOT NULL,
+    PhoneNo VARCHAR(20) NOT NULL,
+    PRIMARY KEY (StudentID, PhoneNo),
+    CONSTRAINT fk_student_phone FOREIGN KEY (StudentID) REFERENCES STUDENT(StudentID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. MESS_CONTACT
+CREATE TABLE IF NOT EXISTS MESS_CONTACT (
+    MessID VARCHAR(10) NOT NULL,
+    ContactNo VARCHAR(20) NOT NULL,
+    PRIMARY KEY (MessID, ContactNo),
+    CONSTRAINT fk_mess_contact FOREIGN KEY (MessID) REFERENCES MESS(MessID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 10. MEAL
+CREATE TABLE IF NOT EXISTS MEAL (
+    MealID VARCHAR(10) PRIMARY KEY,
+    MealName VARCHAR(100) NOT NULL,
+    Description VARCHAR(200),
+    Cost DECIMAL(10,2),
+    MessID VARCHAR(10),
+    CONSTRAINT fk_meal_mess FOREIGN KEY (MessID) REFERENCES MESS(MessID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 11. STAFF
+CREATE TABLE IF NOT EXISTS STAFF (
+    StaffID VARCHAR(10) PRIMARY KEY,
+    StaffName VARCHAR(100) NOT NULL,
+    JoinDate VARCHAR(20),
+    Salary DECIMAL(10,2),
+    Role VARCHAR(50),
+    MessID VARCHAR(10),
+    CONSTRAINT fk_staff_mess FOREIGN KEY (MessID) REFERENCES MESS(MessID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 12. STAFF_PHONE
+CREATE TABLE IF NOT EXISTS STAFF_PHONE (
+    StaffID VARCHAR(10) NOT NULL,
+    PhoneNo VARCHAR(20) NOT NULL,
+    PRIMARY KEY (StaffID, PhoneNo),
+    CONSTRAINT fk_staff_phone FOREIGN KEY (StaffID) REFERENCES STAFF(StaffID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 13. SUPPLIER
+CREATE TABLE IF NOT EXISTS SUPPLIER (
+    SupplierID VARCHAR(10) PRIMARY KEY,
+    SupplierName VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 14. SUPPLIER_PHONE
+CREATE TABLE IF NOT EXISTS SUPPLIER_PHONE (
+    SupplierID VARCHAR(10) NOT NULL,
+    PhoneNo VARCHAR(20) NOT NULL,
+    PRIMARY KEY (SupplierID, PhoneNo),
+    CONSTRAINT fk_supplier_phone FOREIGN KEY (SupplierID) REFERENCES SUPPLIER(SupplierID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 15. INVENTORY_ITEM
+CREATE TABLE IF NOT EXISTS INVENTORY_ITEM (
+    ItemID VARCHAR(10) PRIMARY KEY,
+    ItemName VARCHAR(100) NOT NULL,
+    Category VARCHAR(50),
+    Unit VARCHAR(20)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 16. PROCURES
+CREATE TABLE IF NOT EXISTS PROCURES (
+    MessID VARCHAR(10) NOT NULL,
+    SupplierID VARCHAR(10) NOT NULL,
+    ItemID VARCHAR(10) NOT NULL,
+    Quantity DECIMAL(10,2),
+    PRIMARY KEY (MessID, SupplierID, ItemID),
+    CONSTRAINT fk_procures_mess FOREIGN KEY (MessID) REFERENCES MESS(MessID),
+    CONSTRAINT fk_procures_supplier FOREIGN KEY (SupplierID) REFERENCES SUPPLIER(SupplierID),
+    CONSTRAINT fk_procures_item FOREIGN KEY (ItemID) REFERENCES INVENTORY_ITEM(ItemID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 17. PAYMENT
+CREATE TABLE IF NOT EXISTS PAYMENT (
+    PaymentID VARCHAR(10) PRIMARY KEY,
+    StudentID VARCHAR(10) NOT NULL,
+    Amount DECIMAL(10,2),
+    PaymentMode VARCHAR(30),
+    Status VARCHAR(50),
+    PaymentDay INT,
+    PaymentMonth INT,
+    PaymentYear INT,
+    CONSTRAINT fk_payment_student FOREIGN KEY (StudentID) REFERENCES STUDENT(StudentID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 18. PAYMENT_DETAIL
+CREATE TABLE IF NOT EXISTS PAYMENT_DETAIL (
+    PaymentID VARCHAR(10) NOT NULL,
+    DetailID VARCHAR(10) NOT NULL,
+    Month VARCHAR(30),
+    Year INT,
+    MessCharges DECIMAL(10,2),
+    OtherCharges DECIMAL(10,2),
+    PRIMARY KEY (PaymentID, DetailID),
+    CONSTRAINT fk_detail_payment FOREIGN KEY (PaymentID) REFERENCES PAYMENT(PaymentID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS = 1;
