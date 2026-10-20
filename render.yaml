@@ -1,6 +1,6 @@
 ﻿services:
   - type: web
-    name: hostel-mobile-backend
+    name: hostel-mobile-backend-new
     runtime: node
     plan: free
     region: oregon
@@ -9,3 +9,4 @@
     envVars:
       - key: NODE_ENV
         value: production
+

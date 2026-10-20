@@ -1,4 +1,4 @@
-﻿# Hostel Management System - Mobile Backend
+﻿# Hostel Management System - Mobile Backend (New)
 
 Completely independent, standalone cloud backend service designed for the Flutter Android Hostel Management mobile application.
 
@@ -27,3 +27,4 @@ Completely independent, standalone cloud backend service designed for the Flutte
 - `GET /api/reports` - Analytical report catalog & SQL generators
 - `GET /api/tables` - Table explorer metadata
 - `POST /api/query` - SQL Studio console executor
+
