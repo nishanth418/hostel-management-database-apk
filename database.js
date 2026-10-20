@@ -139,7 +139,7 @@ function adaptSql(sql, engine) {
     adapted = adapted.replace(/GROUP_CONCAT\s*\(\s*([^,\)]+?)\s*\)/gi, "STRING_AGG($1::text, ', ')");
 
     // Replace backticks with double quotes for PostgreSQL
-    adapted = adapted.replace(/`([^`]+)`/g, '"$1"');
+    adapted = adapted.replace(/`([^`]+)`/g, '$1');
 
     // Convert parameter '?' placeholders to '$1', '$2', ...
     let paramIndex = 1;
@@ -469,3 +469,4 @@ module.exports = {
   getEngineType,
   adaptSql
 };
+
